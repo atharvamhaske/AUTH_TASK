@@ -41,11 +41,18 @@ const openApiDoc = {
                   properties: {
                     message: {
                       type: 'string',
-                      example: 'Magic link sent successfully'
+                      example: 'Check your console for the magic link URL'
                     },
                     note: {
+                      type: 'string'
+                    },
+                    userId: {
                       type: 'string',
-                      example: 'Check console for magic link in development'
+                      example: 'clh2x3e0g0000qw3v9s9h1j2q'
+                    },
+                    sessionId: {
+                      type: 'string',
+                      example: '123e4567-e89b-12d3-a456-426614174000'
                     }
                   }
                 }
@@ -58,38 +65,62 @@ const openApiDoc = {
         }
       }
     },
-    '/auth/login': {
-      post: {
-        summary: 'Traditional login',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  email: {
-                    type: 'string',
-                    format: 'email',
-                    example: 'test@example.com'
-                  },
-                  password: {
-                    type: 'string',
-                    format: 'password',
-                    example: 'yourpassword123'
-                  }
-                },
-                required: ['email', 'password']
-              }
-            }
-          }
-        },
+    '/auth/users': {
+      get: {
+        summary: 'Get all users (for testing)',
         responses: {
           '200': {
-            description: 'Login successful'
-          },
-          '401': {
-            description: 'Invalid credentials'
+            description: 'List of users with their sessions',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    users: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          id: {
+                            type: 'string'
+                          },
+                          email: {
+                            type: 'string'
+                          },
+                          createdAt: {
+                            type: 'string',
+                            format: 'date-time'
+                          },
+                          updatedAt: {
+                            type: 'string',
+                            format: 'date-time'
+                          },
+                          sessions: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                id: {
+                                  type: 'string'
+                                },
+                                createdAt: {
+                                  type: 'string',
+                                  format: 'date-time'
+                                },
+                                expiresAt: {
+                                  type: 'string',
+                                  format: 'date-time'
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           '500': {
             description: 'Server error'

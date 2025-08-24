@@ -4,7 +4,6 @@ import { logger, loggerErr } from "@/config/logger";
 
 const authRoute = new Hono();
 
-
 authRoute.use("*", async (c, next) => {
     logger.info(`Auth Request: ${c.req.method} ${c.req.path}`, { file: 'auth.log' });
     await next()
@@ -16,6 +15,7 @@ authRoute.post("/magic-link", async (c) => {
         const { email }: { email: string } = await c.req.json();
         logger.info(`Magic link requested for: ${email}`, { file: 'magic-link.log' });
         
+        // Let Better-Auth handle the magic link flow
         const result = await auth.api.signInMagicLink({ 
             body: { email },
             headers: c.req.header(),
@@ -24,37 +24,68 @@ authRoute.post("/magic-link", async (c) => {
         
         logger.info(`Magic link generation successful for: ${email}`, { file: 'magic-link.log' });
         return c.json({ 
-            message: " Check your console for the magic link URL.",
+            message: "Check your console for the magic link URL.",
             note: "In development, the magic link is logged to console instead of sending email"
         });
 
     } catch (error: any) { 
-        const errorMsg = `Magic link generation failed : ${error.message}`;
+        const errorMsg = `Magic link generation failed: ${error.message}`;
         logger.error(errorMsg, { file: 'errors.log' });
         await loggerErr(errorMsg);
         return c.json({ error: "Failed to send magic link" }, 500);
     }
 });
 
-// Traditional Login Route
-authRoute.post("/login", async (c) => {
-    try {
-        const { email, password }: { email: string, password: string } = await c.req.json();
-        logger.info(`Login attempt for: ${email}`, { file: 'auth.log' });
 
-        // Here you would normally validate against your database
-        logger.info(`Login credentials received for: ${email}`, { file: 'auth.log' });
+authRoute.get("/verify", async (c) => {
+    try {
+        const token = c.req.query('token');
         
-        return c.json({ 
-            message: "Login endpoint working. Implement actual authentication logic.",
-            note: "This is just a demo endpoint. Add your actual auth logic here."
+        if (!token) {
+            throw new Error('No token provided');
+        }
+
+        logger.info(`Verifying magic link token`, { file: 'magic-link.log' });
+
+        // Let Better-Auth handle the verification
+        const result = await auth.api.verifyMagicLink({
+            token,
+            headers: c.req.header()
+        });
+
+        logger.info(`Magic link verification successful`, { file: 'magic-link.log' });
+
+        // Better-Auth has handled the session creation
+        return c.json({
+            message: "Magic link verification successful",
+            session: result.session
         });
 
     } catch (error: any) {
-        const errorMsg = `Login failed: ${error.message}`;
+        const errorMsg = `Magic link verification failed: ${error.message}`;
         logger.error(errorMsg, { file: 'errors.log' });
         await loggerErr(errorMsg);
-        return c.json({ error: "Invalid credentials" }, 401);
+        
+        return c.json({ 
+            error: "Invalid or expired magic link"
+        }, 401);
+    }
+});
+
+// Get current session
+authRoute.get("/session", async (c) => {
+    try {
+        const session = await auth.api.getSession(c);
+        if (!session) {
+            return c.json({ authenticated: false });
+        }
+        return c.json({ 
+            authenticated: true,
+            session 
+        });
+    } catch (error: any) {
+        logger.error(`Session check failed: ${error.message}`);
+        return c.json({ error: "Failed to check session" }, 500);
     }
 });
 
