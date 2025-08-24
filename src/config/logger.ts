@@ -12,12 +12,12 @@ export const logger = winston.createLogger({
                 message,
                 timestamp
             }) => {
-                return `[${timestamp}] ${level.toUpperCase()}: ${message}}`
+                return `[${timestamp}] ${level.toUpperCase()}: ${message}`
             })
     ),
     transports: [
         new winston.transports.Console(),
-        new winston.transports.File({ filename: "logs/erros.log", level: "error" }),
+        new winston.transports.File({ filename: "logs/errors.log", level: "error" }),
         new winston.transports.File({ filename: "logs/combined.log" }),
     ]
 });
