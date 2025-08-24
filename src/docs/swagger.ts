@@ -10,7 +10,7 @@ const openApiDoc = {
     description: 'Auth with magic link login'
   },
   paths: {
-    '/login': {
+    '/auth/magic-link': {
       post: {
         summary: 'Magic link authentication',
         requestBody: {
@@ -22,7 +22,8 @@ const openApiDoc = {
                 properties: {
                   email: {
                     type: 'string',
-                    format: 'email'
+                    format: 'email',
+                    example: 'test@example.com'
                   }
                 },
                 required: ['email']
@@ -32,7 +33,63 @@ const openApiDoc = {
         },
         responses: {
           '200': {
-            description: 'Magic link sent successfully'
+            description: 'Magic link sent successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      example: 'Magic link sent successfully'
+                    },
+                    note: {
+                      type: 'string',
+                      example: 'Check console for magic link in development'
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '500': {
+            description: 'Server error'
+          }
+        }
+      }
+    },
+    '/auth/login': {
+      post: {
+        summary: 'Traditional login',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  email: {
+                    type: 'string',
+                    format: 'email',
+                    example: 'test@example.com'
+                  },
+                  password: {
+                    type: 'string',
+                    format: 'password',
+                    example: 'yourpassword123'
+                  }
+                },
+                required: ['email', 'password']
+              }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: 'Login successful'
+          },
+          '401': {
+            description: 'Invalid credentials'
           },
           '500': {
             description: 'Server error'

@@ -1,10 +1,10 @@
-import { prisma } from "./prisma";
+
 import  { betterAuth } from "better-auth"
 import { magicLink} from "better-auth/plugins"
-import { honoAdapter} from "better-auth/adapters/hono"
+import { prismaAdapter} from "better-auth/adapters/prisma"
 
 export const auth = betterAuth({
-    adapter: honoAdapter(prisma),
+    adapter: prismaAdapter,
     secret: process.env.AUTH_SECRET!,
     baseURL: "http://localhost:3001",
     plugins: [

@@ -1,49 +1,22 @@
 import { Hono } from "hono"
-import { logger, loggerErr } from "./config/logger"
-import { swaggerUI } from "@hono/swagger-ui";
 import { createrSwagger } from "./docs/swagger";
+import authRoute from "./routes/auth";
 
 const app = new Hono();
 
-//swagger foc route down there
+// Mount Swagger UI
+app.route('/docs', createrSwagger());
 
-app.get(
-    "/docs",
-    swaggerUI({
-        url: "/swagger.json"
-    })
-)
-
-app.get("/swagger.json", (c) => c.json(createrSwagger))
-
-app.get("/", async (c) => {
-    logger.info("hitted endpoint")
-    await loggerErr('this is log to tg bot')
-    return c.text('hello from logger ')
-});
-
-app.get("/login", async (c) => {
-    try {
-        logger.info("login attempted");
-        await loggerErr("user tried logging in")
-
-        // on success
-        return c.json({
-            message: "login successful"
-        })
-    } catch (error) {
-        logger.error("login failed", error as Error);
-                await loggerErr(`login failed: ${(error as Error).message}`);
-         return c.json({
-             error: "login failed"
-         }, 500);
-     }
-})
+// Mount auth routes
+app.route('/auth', authRoute);
 
 const port = process.env.PORT || 3001;
 
-console.log(`server is running on port ${port}`);
-console.log(`swagger docs at http://localhost:${port}/docs`);
+console.log(`Server is running on port ${port}`);
+console.log(`Swagger docs at http://localhost:${port}/docs`);
+console.log(`\nIMPORTANT: In development mode, magic links are logged to console instead of sending emails.`);
+console.log(`Watch the console output when you request a magic link to see the URL.`);
+
 export default {
     port,
     fetch: app.fetch
