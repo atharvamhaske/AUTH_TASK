@@ -53,3 +53,5 @@ export async function loggerErr(message : string) {
     logger.error(message);
     await teleLog(message)
 }
+
+// this will act as logger main file we will call this functions whernevr we see try catch and error like things and it will log the error
