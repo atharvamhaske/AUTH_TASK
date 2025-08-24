@@ -1,6 +1,66 @@
 # Magic Link Authentication Service
 
-A modern authentication service built with Hono, Better-Auth, and PostgreSQL, featuring magic link authentication and comprehensive logging.
+A modern authentication service built with Hono, Better-Auth, and PostgreSQL, featuring magic link authentication and comprehensive logging with Telegram bot integration.
+
+## Key Features Showcase
+
+### 1. Magic Link Authentication
+![Swagger UI Screenshot](docs/images/swagger-ui.png)
+*Interactive API documentation with Swagger UI showing magic link endpoint*
+
+### 2. Real-time Telegram Bot Logging
+![Telegram Bot Logs](docs/images/telegram-logs.png)
+*Live authentication monitoring and error tracking through Telegram*
+```log
+[25-08-24 00:18] Log: New magic link generated: magic link for test@example.com: 
+http://localhost:3001/api/auth/magic-link/verify?token=rjvYJzurPuthhqUdzjdkTGawrFrENSMX&callbackURL=%2F
+```
+
+### 3. User Session Management
+![User Management](docs/images/user-management.png)
+*Complete user session tracking and management*
+
+## Project Overview
+
+This service implements a modern authentication system using magic links with comprehensive logging and monitoring capabilities. Perfect for applications requiring secure, passwordless authentication with full audit trails.
+
+### Authentication Features
+- Passwordless authentication via magic links
+- Secure session management
+- User activity tracking
+- Real-time authentication monitoring
+
+### Logging System
+1. **Winston Logger Integration**
+   - Structured logging with timestamps
+   - Multiple severity levels (INFO, ERROR, WARN)
+   - File-based persistence
+   - Custom formatting
+
+2. **Telegram Bot Integration**
+   ```typescript
+   // Example of Telegram logging setup
+   export async function teleLog(message: string) {
+       const url = `https://api.telegram.org/bot${teleToken}/sendMessage`
+       await fetch(url, {
+           method: "POST",
+           body: JSON.stringify({
+               chat_id: chatId,
+               text: `Log: ${message}`,
+               parse_mode: "Markdown"
+           })
+       });
+   }
+   ```
+   - Real-time notifications
+   - Authentication event tracking
+   - Error alerting
+   - Security monitoring
+
+3. **Log Categories**
+   - `auth.log`: Authentication attempts
+   - `magic-link.log`: Magic link generation and usage
+   - `error.log`: System errors and failures
 
 ## Tech Stack
 
@@ -8,7 +68,9 @@ A modern authentication service built with Hono, Better-Auth, and PostgreSQL, fe
 - **Framework**: Hono v4.9.4
 - **Authentication**: Better-Auth v1.3.7
 - **Database**: PostgreSQL with Prisma v6.14.0
-- **Logging**: Winston v3.17.0
+- **Logging**: 
+  - Winston v3.17.0 for structured logging
+  - Custom Telegram Bot integration
 - **API Documentation**: Swagger UI (@hono/swagger-ui v0.5.2)
 - **Type Safety**: TypeScript v5.9.2
 
@@ -16,13 +78,17 @@ A modern authentication service built with Hono, Better-Auth, and PostgreSQL, fe
 
 ```
 project/
-├── docs/
+├── docs/                      # Project documentation
+│   ├── images/               # Documentation screenshots
+│   │   ├── swagger-ui.png    # API documentation interface
+│   │   ├── telegram-logs.png # Telegram bot logging
+│   │   └── user-management.png # User management interface
 │   └── auth-flow-diagram.md  # Authentication flow diagram
 ├── prisma/
 │   └── schema.prisma         # Database schema
 ├── src/
 │   ├── config/
-│   │   └── logger.ts         # Winston logger configuration
+│   │   └── logger.ts         # Winston & Telegram logger setup
 │   ├── docs/
 │   │   └── swagger.ts        # API documentation
 │   ├── lib/
@@ -34,32 +100,13 @@ project/
 │   ├── app.log              # Combined logs
 │   ├── auth.log             # Authentication logs
 │   └── magic-link.log       # Magic link specific logs
+├── TESTING_GUIDE.md         # Detailed testing instructions
 └── package.json
 ```
 
-## Database Schema
+## Getting Started
 
-```prisma
-model User {
-  id        String     @id @default(cuid())
-  email     String     @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  sessions  Sessions[]
-}
-
-model Sessions {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  expiresAt DateTime
-}
-```
-
-## Setup and Installation
-
-1. **Clone and Install Dependencies**
+1. **Clone and Install**
    ```bash
    git clone <repository-url>
    cd <project-directory>
@@ -67,12 +114,11 @@ model Sessions {
    ```
 
 2. **Environment Setup**
-   Create a .env file:
    ```env
    DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
    AUTH_SECRET="your-secret-key"
-   TELE_TOKEN="your-telegram-bot-token"  # Optional
-   CHAT_ID="your-telegram-chat-id"       # Optional
+   TELE_TOKEN="your-telegram-bot-token"
+   CHAT_ID="your-telegram-chat-id"
    ```
 
 3. **Database Setup**
@@ -81,69 +127,60 @@ model Sessions {
    bunx prisma migrate dev
    ```
 
-4. **Start the Server**
+4. **Start Server**
    ```bash
    bun run dev:backend
    ```
 
-## API Documentation
-
-Access Swagger UI at `http://localhost:3001/docs`
-
-### Available Endpoints
-
-- **POST /auth/magic-link**
-  - Request magic link authentication
-  - Body: `{ "email": "user@example.com" }`
-
-- **GET /auth/verify**
-  - Verify magic link and complete authentication
-  - Query params: `token`
-
-- **GET /auth/session**
-  - Check current session status
+5. **Access Points**
+   - Swagger UI: `http://localhost:3001/docs`
+   - Magic Link Endpoint: `POST /auth/magic-link`
+   - Session Check: `GET /auth/session`
 
 ## Authentication Flow
 
-### Flow Diagram
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant API as API Server
+    participant BA as Better Auth
+    participant DB as Database
+    participant L as Logger
+    participant T as Telegram
 
-![Authentication Flow Diagram](docs/auth-flow-diagram.md)
+    U->>API: POST /auth/magic-link
+    API->>L: Log request
+    API->>BA: Request magic link
+    BA->>DB: Create/Update user
+    BA-->>API: Return magic link
+    API->>L: Log success
+    API->>T: Send notification
+    API-->>U: Return success message
+```
 
-> **Note**: This is a Mermaid diagram. To view it:
-> 1. Install a Mermaid viewer extension in your browser, or
-> 2. View it on GitHub (which renders Mermaid diagrams automatically), or
-> 3. Copy the content from `docs/auth-flow-diagram.md` to [Mermaid Live Editor](https://mermaid.live)
+## Monitoring and Logging
 
-### Testing the Flow
+### Winston Logger
+- Structured logging with timestamps
+- Multiple transport layers
+- Error tracking
+- Performance monitoring
 
-1. **Request Magic Link**
-   - Go to `http://localhost:3001/docs`
-   - Find the `/auth/magic-link` endpoint
-   - Click "Try it out"
-   - Enter test email: `test@example.com`
-   - Execute request
-   - Check console for magic link URL
+### Telegram Bot Integration
+- Real-time notifications
+- Authentication monitoring
+- Error alerts
+- Security event tracking
 
-2. **Verify Magic Link**
-   - Copy magic link URL from console
-   - Visit the URL in browser
-   - Should see verification success
-
-3. **Check Session**
-   - Use `/auth/session` endpoint
-   - Should show authenticated status
-
-### Logging
-
-All authentication flows are logged in:
-- Console output
-- `logs/auth.log` - All auth requests
-- `logs/magic-link.log` - Magic link specific logs
-- Telegram notifications (if configured)
+Example log from Telegram:
+```
+[24-08-25 21:13:11] INFO: Magic link requested for: test@example.com
+[24-08-25 21:13:11] INFO: Magic link generation successful
+```
 
 ## Development Notes
 
-- In development, magic links are logged to console instead of being sent via email
-- Database operations are handled automatically by Better-Auth
-- Winston logger captures all authentication events
-- Optional Telegram integration for important notifications
+- Magic links are logged to console in development
+- Telegram notifications provide real-time monitoring
+- Winston logger handles all system events
+- Complete audit trail of authentication flows
