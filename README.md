@@ -4,20 +4,25 @@ A modern authentication service built with Hono, Better-Auth, and PostgreSQL, fe
 
 ## Key Features Showcase
 
-### 1. Magic Link Authentication
-![Swagger UI Screenshot](docs/images/swagger-ui.png)
+### 1. Magic Link Authentication via POST method
+<img src="docs/images/postReq.png" alt="Swagger UI Screenshot" width="800"/>
+
 *Interactive API documentation with Swagger UI showing magic link endpoint*
 
 ### 2. Real-time Telegram Bot Logging
-![Telegram Bot Logs](docs/images/telegram-logs.png)
+<img src="docs/images/TeleBot.png" alt="Telegram Bot Logs" width="800"/>
+
 *Live authentication monitoring and error tracking through Telegram*
+
+Example log:
 ```log
 [25-08-24 00:18] Log: New magic link generated: magic link for test@example.com: 
 http://localhost:3001/api/auth/magic-link/verify?token=rjvYJzurPuthhqUdzjdkTGawrFrENSMX&callbackURL=%2F
 ```
 
-### 3. User Session Management
-![User Management](docs/images/user-management.png)
+### 3. Checking User using Get method
+<img src="docs/images/getReq.png" alt="User Management Interface" width="800"/>
+
 *Complete user session tracking and management*
 
 ## Project Overview
@@ -80,9 +85,9 @@ This service implements a modern authentication system using magic links with co
 project/
 ├── docs/                      # Project documentation
 │   ├── images/               # Documentation screenshots
-│   │   ├── swagger-ui.png    # API documentation interface
-│   │   ├── telegram-logs.png # Telegram bot logging
-│   │   └── user-management.png # User management interface
+│   │   ├── getReq.png    # GET method
+│   │   ├── postReq.png  # POST method
+│   │   └── TeleBot.png  #  Telegram bot logging
 │   └── auth-flow-diagram.md  # Authentication flow diagram
 ├── prisma/
 │   └── schema.prisma         # Database schema
