@@ -1,16 +1,18 @@
 import { prisma } from "./prisma";
-import crypto from "crypto";
+import  { betterAuth } from "better-auth"
+import { magicLink} from "better-auth/plugins"
+import { honoAdapter} from "better-auth/adapters/hono"
 
-export async function createSession(userId: string) {
-  const token = crypto.randomBytes(32).toString("hex");
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7); // 7 days
-  return prisma.session.create({
-    data: { userId, token, expiresAt },
-  });
-}
-
-export async function validateSession(token: string) {
-  const session = await prisma.session.findUnique({ where: { token } });
-  if (!session || session.expiresAt < new Date()) return null;
-  return session;
-}
+export const auth = betterAuth({
+    adapter: honoAdapter(prisma),
+    secret: process.env.AUTH_SECRET!,
+    baseURL: "http://localhost:3001",
+    plugins: [
+        magicLink({
+            sendMagicLink: async ({email, url}, request) => {
+                //send email to user
+                console.log(`magic link for ${email}: ${url}`)
+            }
+        })
+    ]
+})
