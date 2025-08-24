@@ -1,9 +1,12 @@
 import { Hono } from 'hono'
+import  { createrSwagger }  from './docs/swagger'
 
 const app = new Hono()
 
-//middlw
+// Mount Swagger UI at /docs
+app.route('/docs', createrSwagger())
 
+// Global middleware
 app.use('*', async (c, next) => {
-    
+    await next()
 })

@@ -1,7 +1,20 @@
 import { Hono } from "hono"
 import { logger, loggerErr } from "./config/logger"
+import { swaggerUI } from "@hono/swagger-ui";
+import { createrSwagger } from "./docs/swagger";
 
 const app = new Hono();
+
+//swagger foc route down there
+
+app.get(
+    "/docs",
+    swaggerUI({
+        url: "/swagger.json"
+    })
+)
+
+app.get("/swagger.json", (c) => c.json(createrSwagger))
 
 app.get("/", async (c) => {
     logger.info("hitted endpoint")
@@ -30,6 +43,7 @@ app.get("/login", async (c) => {
 const port = process.env.PORT || 3001;
 
 console.log(`server is running on port ${port}`);
+console.log(`swagger docs at http://localhost:${port}/docs`);
 export default {
     port,
     fetch: app.fetch
